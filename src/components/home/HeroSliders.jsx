@@ -15,18 +15,16 @@ const slides = [
     description:
       "Refresh your lifestyle with amazing products at special prices.",
     button: "Shop Now",
-    
-    image: " /public/BedSheet1.webp",
+    image: "/BedSheet1.webp",
   },
   {
     id: 2,
     title: "Latest BedSheet Design",
     subtitle: "Pure Cotton",
     description:
-      "Discover BedSheets, Comfertors, Bed Sets and more.",
+      "Discover BedSheets, Comforters, Bed Sets and more.",
     button: "Explore New Arrivals",
-    image:
-      " /public/BedsHeet.webp",
+    image: "/BedsHeet.webp",
   },
   {
     id: 3,
@@ -35,8 +33,7 @@ const slides = [
     description:
       "Check out our newest collection and find your next favorite product.",
     button: "View New Arrivals",
-    image:
-         " /public/ColBedsheet.webp",     
+    image: "/ColBedsheet.webp",
   },
   {
     id: 4,
@@ -45,8 +42,7 @@ const slides = [
     description:
       "Grab your favorite products before these special offers disappear.",
     button: "Shop Deals",
-    image:
-      "/public/WBedsheet.webp",
+    image: "/WBedsheet.webp",
   },
 ];
 

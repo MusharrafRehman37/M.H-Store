@@ -77,7 +77,7 @@ function Home() {
 
               <p className="text-gray-500 text-sm leading-relaxed mt-2">
                 Enjoy free shipping on qualifying
-                orders above $50.
+                orders above Rs.10,000.
               </p>
 
             </div>
@@ -125,22 +125,22 @@ function Home() {
 
             {/* Customer Support */}
 
-            <div className="bg-white rounded-2xl p-7 border border-gray-100 hover:shadow-lg transition">
+            <a
+            href="#footer"
+            className="block bg-white rounded-2xl p-7 border border-gray-100 hover:shadow-lg transition cursor-pointer"
+>
+  <div className="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center">
+    <Headphones size={26} />
+  </div>
 
-              <div className="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center">
-                <Headphones size={26} />
-              </div>
+  <h3 className="font-bold text-lg text-gray-900 mt-5">
+    Customer Support
+  </h3>
 
-              <h3 className="font-bold text-lg text-gray-900 mt-5">
-                Customer Support
-              </h3>
-
-              <p className="text-gray-500 text-sm leading-relaxed mt-2">
-                Our support team is ready to help
-                whenever you need us.
-              </p>
-
-            </div>
+  <p className="text-gray-500 text-sm leading-relaxed mt-2">
+    Our support team is ready to help whenever you need us.
+  </p>
+</a>
 
           </div>
 
@@ -212,7 +212,7 @@ function Home() {
               <div className="flex items-center gap-3 mt-7">
 
                 <div className="w-11 h-11 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
-                  M
+                  H
                 </div>
 
                 <div>
