@@ -7,6 +7,11 @@ import {
   User,
   ShieldCheck,
 } from "lucide-react";
+import {
+  getStoredUsers,
+  saveStoredUsers,
+  markUserDeleted,
+} from "../../utils/userStorage";
 
 function UserPage() {
   const [users, setUsers] = useState([]);
@@ -17,16 +22,16 @@ function UserPage() {
   // ==============================
 
   useEffect(() => {
-    try {
-      const savedUsers = JSON.parse(
-        localStorage.getItem("users") || "[]"
-      );
+    const loadUsers = () => setUsers(getStoredUsers());
 
-      setUsers(savedUsers);
-    } catch (error) {
-      console.error("Error loading users:", error);
-      setUsers([]);
-    }
+    loadUsers();
+    window.addEventListener("usersUpdated", loadUsers);
+    window.addEventListener("storage", loadUsers);
+
+    return () => {
+      window.removeEventListener("usersUpdated", loadUsers);
+      window.removeEventListener("storage", loadUsers);
+    };
   }, []);
 
   // ==============================
@@ -40,17 +45,21 @@ function UserPage() {
 
     if (!confirmed) return;
 
+    const deletedUser = users.find(
+      (user) => (user.id || user._id || user.email) === userId
+    );
+
     const updatedUsers = users.filter(
       (user) =>
         (user.id || user._id || user.email) !== userId
     );
 
-    setUsers(updatedUsers);
+    if (deletedUser?.email) {
+      markUserDeleted(deletedUser.email);
+    }
 
-    localStorage.setItem(
-      "users",
-      JSON.stringify(updatedUsers)
-    );
+    setUsers(updatedUsers);
+    saveStoredUsers(updatedUsers);
   };
 
   // ==============================

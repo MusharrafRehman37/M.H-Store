@@ -16,6 +16,7 @@ import {
 } from "../../services/productService";
 
 import { useAuth } from "../../hooks/useAuth";
+import { getAdminProducts, saveAdminProducts } from "../../utils/productStorage";
 
 function Products() {
   const navigate = useNavigate();
@@ -30,19 +31,14 @@ function Products() {
   // LOAD PRODUCTS
   // ==========================================
 
-  const loadProducts = async () => {
+  const loadProducts = () => {
     try {
       setLoading(true);
       setError("");
-
-      const data = await getProducts();
-
-      setProducts(data);
+      setProducts(getAdminProducts());
     } catch (err) {
       console.error("Products Error:", err);
-      setError(
-        err.message || "Failed to load products"
-      );
+      setError("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -91,14 +87,12 @@ function Products() {
     }
 
     try {
-      await deleteProduct(id, token);
-
-      setProducts((current) =>
-        current.filter(
-          (product) =>
-            (product._id || product.id) !== id
-        )
+      const updated = products.filter(
+        (product) => String(product._id || product.id) !== String(id)
       );
+
+      saveAdminProducts(updated);
+      setProducts(updated);
     } catch (err) {
       console.error(
         "Delete Product Error:",

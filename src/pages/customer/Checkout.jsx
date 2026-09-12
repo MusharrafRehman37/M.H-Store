@@ -18,6 +18,7 @@ import {
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { createOrder } from "../../services/orderService";
+import { getShippingCharge } from "../../utils/shipping";
 
 function Checkout() {
   const navigate = useNavigate();
@@ -63,6 +64,9 @@ function Checkout() {
 
     notes: "",
   });
+
+  const shippingCharge = getShippingCharge(formData.city);
+  const grandTotal = Number(totalAmount) + Number(shippingCharge);
 
   // ==========================================
   // FORM CHANGE
@@ -137,7 +141,11 @@ function Checkout() {
             Number(item.quantity) || 1,
         })),
 
-        total: Number(totalAmount),
+        subtotal: Number(totalAmount),
+
+        shippingCharge: Number(shippingCharge),
+
+        total: Number(grandTotal),
 
         totalItems: Number(totalItems),
 
@@ -146,7 +154,8 @@ function Checkout() {
 
       const data = await createOrder(
         orderData,
-        token
+        token,
+        user
       );
 
       setOrderId(
@@ -164,7 +173,7 @@ function Checkout() {
 
       setError(
         err.message ||
-          "Failed to place order. Please try again."
+          "Failed to place order. Please check your details and try again."
       );
     } finally {
       setLoading(false);
@@ -527,39 +536,53 @@ function Checkout() {
                   Payment Method
                 </h2>
 
-                <label className="flex items-center gap-4 border border-blue-200 bg-blue-50 rounded-xl p-4 cursor-pointer">
+                <div className="grid md:grid-cols-2 gap-4">
 
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cash-on-delivery"
-                    checked={
-                      paymentMethod ===
-                      "cash-on-delivery"
-                    }
-                    onChange={(e) =>
-                      setPaymentMethod(
-                        e.target.value
-                      )
-                    }
-                  />
+                  <label className={`flex items-center gap-4 border rounded-xl p-4 cursor-pointer transition ${
+                    paymentMethod === "cash-on-delivery"
+                      ? "border-blue-300 bg-blue-50"
+                      : "border-gray-200 hover:border-blue-200"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cash-on-delivery"
+                      checked={paymentMethod === "cash-on-delivery"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    />
+                    <CreditCard size={21} className="text-blue-600" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Cash on Delivery</p>
+                      <p className="text-xs text-gray-500">Pay when your order arrives.</p>
+                    </div>
+                  </label>
 
-                  <CreditCard
-                    size={21}
-                    className="text-blue-600"
-                  />
+                  <label className={`flex items-center gap-4 border rounded-xl p-4 cursor-pointer transition ${
+                    paymentMethod === "advance-payment"
+                      ? "border-blue-300 bg-blue-50"
+                      : "border-gray-200 hover:border-blue-200"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="advance-payment"
+                      checked={paymentMethod === "advance-payment"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    />
+                    <CreditCard size={21} className="text-blue-600" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Advance Payment</p>
+                      <p className="text-xs text-gray-500">Pay in advance for your order.</p>
+                    </div>
+                  </label>
 
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      Cash on Delivery
-                    </p>
+                </div>
 
-                    <p className="text-xs text-gray-500">
-                      Pay when your order arrives.
-                    </p>
-                  </div>
-
-                </label>
+                {paymentMethod === "advance-payment" && (
+                  <p className="mt-3 text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg p-3">
+                    Advance payment is currently recorded as the selected payment method. Connect a payment gateway later for real online payment collection.
+                  </p>
+                )}
 
               </div>
 
@@ -575,7 +598,7 @@ function Checkout() {
                 {loading
                   ? "Placing Order..."
                   : `Place Order    •   Rs. ${Number(
-                      totalAmount
+                      grandTotal
                     ).toFixed(2)}`}
               </button>
 
@@ -644,28 +667,30 @@ function Checkout() {
 
               </div>
 
-              <div className="border-t border-gray-100 mt-6 pt-5">
+              <div className="border-t border-gray-100 mt-6 pt-5 space-y-3">
 
                 <div className="flex justify-between text-gray-500">
-                  <span>
-                    Items
-                  </span>
+                  <span>Items</span>
+                  <span>{totalItems}</span>
+                </div>
 
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>Rs.{Number(totalAmount).toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between text-gray-600">
+                  <span>Shipping</span>
                   <span>
-                    {totalItems}
+                    {formData.city.trim()
+                      ? `Rs.${Number(shippingCharge).toFixed(2)}`
+                      : "Enter city"}
                   </span>
                 </div>
 
-                <div className="flex justify-between mt-3 text-lg font-bold">
-                  <span>
-                    Total
-                  </span>
-
-                  <span>
-                    Rs.{Number(
-                      totalAmount
-                    ).toFixed(2)}
-                  </span>
+                <div className="border-t border-gray-100 pt-4 flex justify-between text-lg font-bold">
+                  <span>Total</span>
+                  <span>Rs.{Number(grandTotal).toFixed(2)}</span>
                 </div>
 
               </div>

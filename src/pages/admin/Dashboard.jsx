@@ -5,7 +5,7 @@ import {
   Package,
   ShoppingCart,
   Users,
-  DollarSign,
+  Banknote,
   Plus,
   ArrowRight,
   Clock,
@@ -23,25 +23,38 @@ function Dashboard() {
   // ==============================
 
   useEffect(() => {
-    try {
-      const savedProducts = JSON.parse(
-        localStorage.getItem("products") || "[]"
-      );
+    const loadDashboardData = () => {
+      try {
+        const savedProducts = JSON.parse(
+          localStorage.getItem("products") || "[]"
+        );
+        const savedUsers = JSON.parse(
+          localStorage.getItem("users") || "[]"
+        );
+        const savedOrders = JSON.parse(
+          localStorage.getItem("orders") || "[]"
+        );
 
-      const savedUsers = JSON.parse(
-        localStorage.getItem("users") || "[]"
-      );
+        setProducts(savedProducts);
+        setUsers(savedUsers);
+        setOrders(savedOrders);
+      } catch (error) {
+        console.error("Dashboard data error:", error);
+      }
+    };
 
-      const savedOrders = JSON.parse(
-        localStorage.getItem("orders") || "[]"
-      );
+    loadDashboardData();
+    window.addEventListener("productsUpdated", loadDashboardData);
+    window.addEventListener("usersUpdated", loadDashboardData);
+    window.addEventListener("ordersUpdated", loadDashboardData);
+    window.addEventListener("storage", loadDashboardData);
 
-      setProducts(savedProducts);
-      setUsers(savedUsers);
-      setOrders(savedOrders);
-    } catch (error) {
-      console.error("Dashboard data error:", error);
-    }
+    return () => {
+      window.removeEventListener("productsUpdated", loadDashboardData);
+      window.removeEventListener("usersUpdated", loadDashboardData);
+      window.removeEventListener("ordersUpdated", loadDashboardData);
+      window.removeEventListener("storage", loadDashboardData);
+    };
   }, []);
 
   // ==============================
@@ -275,8 +288,8 @@ function Dashboard() {
             </div>
 
             <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
-              <DollarSign size={24} />
-            </div>
+  <Banknote size={24} />
+</div>
 
           </div>
 

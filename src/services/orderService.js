@@ -1,144 +1,132 @@
+import {
+  createLocalOrder,
+  getLocalOrders,
+  getAllLocalOrders,
+  updateLocalOrderStatus,
+} from "../utils/orderStorage";
 
 const API_URL = "http://localhost:8000/orders";
 
-// ==========================================
-// CREATE ORDER
-// ==========================================
-
-export const createOrder = async (
-  orderData,
-  token
-) => {
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(orderData),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      data.message || "Failed to place order"
-    );
+const parseResponse = async (response) => {
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return {};
   }
-
-  return data;
 };
 
-// ==========================================
-// GET MY ORDERS
-// ==========================================
-
-export const getMyOrders = async (token) => {
-  const response = await fetch(
-    `${API_URL}/my-orders`,
-    {
+export const createOrder = async (orderData, token, user) => {
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify(orderData),
+    });
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to place order");
     }
-  );
 
-  const data = await response.json();
+    return data;
+  } catch (error) {
+    // The current frontend can also run without the order API.
+    // Save the order locally so checkout remains usable during local/demo work.
+    console.warn("Order API unavailable; using local order storage:", error);
 
-  if (!response.ok) {
-    throw new Error(
-      data.message || "Failed to fetch orders"
-    );
+    const order = createLocalOrder(orderData, user);
+    return { order, local: true };
   }
-
-  return data.orders || [];
 };
 
-// ==========================================
-// GET SINGLE ORDER
-// ==========================================
+export const getMyOrders = async (token, user) => {
+  try {
+    const response = await fetch(`${API_URL}/my-orders`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-export const getMyOrderById = async (
-  id,
-  token
-) => {
-  const response = await fetch(
-    `${API_URL}/my-orders/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+    const data = await parseResponse(response);
+    if (!response.ok) throw new Error(data.message || "Failed to fetch orders");
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      data.message || "Failed to fetch order"
-    );
+    const apiOrders = data.orders || [];
+    const localOrders = getLocalOrders(user);
+    const apiIds = new Set(apiOrders.map((order) => String(order._id)));
+    return [
+      ...apiOrders,
+      ...localOrders.filter((order) => !apiIds.has(String(order._id))),
+    ];
+  } catch (error) {
+    console.warn("My orders API unavailable; using local orders:", error);
+    return getLocalOrders(user);
   }
-
-  return data.order;
 };
 
-// ==========================================
-// ADMIN - GET ALL ORDERS
-// ==========================================
+export const getMyOrderById = async (id, token, user) => {
+  try {
+    const response = await fetch(`${API_URL}/my-orders/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await parseResponse(response);
+    if (!response.ok) throw new Error(data.message || "Failed to fetch order");
+
+    return data.order;
+  } catch (error) {
+    const localOrder = getLocalOrders(user).find(
+      (order) => String(order._id) === String(id)
+    );
+    if (localOrder) return localOrder;
+    throw error;
+  }
+};
 
 export const getAllOrders = async (token) => {
-  const response = await fetch(
-    `${API_URL}/admin/all`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  try {
+    const response = await fetch(`${API_URL}/admin/all`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  const data = await response.json();
+    const data = await parseResponse(response);
+    if (!response.ok) throw new Error(data.message || "Failed to fetch orders");
 
-  if (!response.ok) {
-    throw new Error(
-      data.message || "Failed to fetch orders"
-    );
+    const apiOrders = data.orders || [];
+    const localOrders = getAllLocalOrders();
+    const apiIds = new Set(apiOrders.map((order) => String(order._id)));
+    return [
+      ...apiOrders,
+      ...localOrders.filter((order) => !apiIds.has(String(order._id))),
+    ];
+  } catch (error) {
+    console.warn("Admin orders API unavailable; using local orders:", error);
+    return getAllLocalOrders();
   }
-
-  return data.orders || [];
 };
 
-// ==========================================
-// ADMIN - UPDATE STATUS
-// ==========================================
-
-export const updateOrderStatus = async (
-  id,
-  status,
-  token
-) => {
-  const response = await fetch(
-    `${API_URL}/admin/${id}/status`,
-    {
+export const updateOrderStatus = async (id, status, token) => {
+  try {
+    const response = await fetch(`${API_URL}/admin/${id}/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        status,
-      }),
+      body: JSON.stringify({ status }),
+    });
+
+    const data = await parseResponse(response);
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to update order status");
     }
-  );
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      data.message ||
-        "Failed to update order status"
-    );
+    return data;
+  } catch (error) {
+    const order = updateLocalOrderStatus(id, status);
+    if (!order) throw error;
+    return { order, local: true };
   }
-
-  return data;
 };
-

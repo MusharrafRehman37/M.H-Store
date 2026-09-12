@@ -190,7 +190,7 @@ function Cart() {
 
               <div className="flex justify-between text-gray-600 mt-4">
                 <span>Shipping</span>
-                <span className="text-green-600">Free</span>
+                <span className="text-gray-500">Calculated at checkout</span>
               </div>
 
               <div className="border-t border-gray-100 my-5" />

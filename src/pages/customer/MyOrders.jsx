@@ -33,7 +33,7 @@ function MyOrders() {
       setLoading(true);
       setError("");
 
-      const data = await getMyOrders(token);
+      const data = await getMyOrders(token, user);
 
       setOrders(data || []);
     } catch (err) {
@@ -331,8 +331,7 @@ function MyOrders() {
                       </p>
 
                       <p className="font-bold text-lg text-gray-900">
-                        $
-                        {Number(
+                        Rs.{Number(
                           order.total || 0
                         ).toFixed(2)}
                       </p>
@@ -414,7 +413,7 @@ function MyOrders() {
                                 </div>
 
                                 <p className="font-semibold text-gray-900">
-                                  $
+                                  Rs.
                                   {(
                                     Number(
                                       item.price ||

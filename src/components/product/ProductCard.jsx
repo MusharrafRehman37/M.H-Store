@@ -1,5 +1,6 @@
 
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import {
   Heart,
   ShoppingCart,
@@ -8,6 +9,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { toast } from "react-hot-toast";
 
 function ProductCard({
   product,
@@ -18,6 +20,8 @@ function ProductCard({
 
   const { addToCart } =
     useCart();
+
+  const [message, setMessage] = useState("");
 
   const {
     toggleWishlist,
@@ -54,7 +58,19 @@ function ProductCard({
       return;
     }
 
-    addToCart(product);
+    const result = addToCart(product);
+
+    if (result?.success) {
+      const productName = product?.name || "Product";
+      setMessage(`${productName} added to cart`);
+      toast.success(`${productName} added to cart`);
+      window.setTimeout(() => setMessage(""), 2500);
+      return;
+    }
+
+    if (result?.message) {
+      toast.error(result.message);
+    }
   };
 
   // ==========================================
@@ -72,6 +88,12 @@ function ProductCard({
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition group">
+
+      {message && (
+        <div className="fixed top-24 right-5 z-[100] bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg font-semibold text-sm animate-pulse">
+          ✓ {message}
+        </div>
+      )}
 
       {/* =====================================
           IMAGE

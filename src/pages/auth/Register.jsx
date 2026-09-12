@@ -1,4 +1,5 @@
 import { registerUser } from "../../services/authService";
+import { unmarkUserDeleted } from "../../utils/userStorage";
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -60,11 +61,35 @@ function Register() {
     setLoading(true);
 
     try {
-      await registerUser({
+      const registeredData = await registerUser({
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
       });
+
+      const registeredUser = registeredData?.user || registeredData?.data?.user || {};
+      const createdAt = registeredUser.createdAt || new Date().toISOString();
+      const localUser = {
+        id: registeredUser.id || registeredUser._id || formData.email.toLowerCase(),
+        fullName: registeredUser.fullName || formData.fullName.trim(),
+        email: registeredUser.email || formData.email.trim().toLowerCase(),
+        role: registeredUser.role || "customer",
+        createdAt,
+      };
+
+      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+      const updatedUsers = [
+        ...existingUsers.filter(
+          (item) => item.email?.toLowerCase() !== localUser.email.toLowerCase()
+        ),
+        localUser,
+      ];
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+      window.dispatchEvent(new Event("usersUpdated"));
+
+      // A successful new registration is allowed to use an email
+      // that was previously removed by the admin.
+      unmarkUserDeleted(formData.email);
 
       setSuccess(
         "Account created successfully! Redirecting to login..."

@@ -7,6 +7,7 @@ import {
   Save,
   Image as ImageIcon,
 } from "lucide-react";
+import { getAdminProducts, saveAdminProducts } from "../../utils/productStorage";
 
 function AddProduct() {
   const navigate = useNavigate();
@@ -62,9 +63,7 @@ function AddProduct() {
     setLoading(true);
 
     try {
-      const savedProducts = JSON.parse(
-        localStorage.getItem("products") || "[]"
-      );
+      const savedProducts = getAdminProducts();
 
       const newProduct = {
         id:
@@ -84,10 +83,7 @@ function AddProduct() {
         newProduct,
       ];
 
-      localStorage.setItem(
-        "products",
-        JSON.stringify(updatedProducts)
-      );
+      saveAdminProducts(updatedProducts);
 
       navigate("/admin/products");
     } catch (error) {

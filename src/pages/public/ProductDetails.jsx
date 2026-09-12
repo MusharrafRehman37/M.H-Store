@@ -10,13 +10,15 @@ import {
   Check,
 } from "lucide-react";
 
-import products from "../../data/product";
+import { getAllProducts } from "../../utils/productStorage";
+import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 
 function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { addToCart } = useCart();
 
@@ -25,11 +27,12 @@ function ProductDetails() {
     isInWishlist,
   } = useWishlist();
 
-  const product = products.find(
-    (item) => item.id === id
+  const product = getAllProducts().find(
+    (item) => String(item.id || item._id) === String(id)
   );
 
   const [quantity, setQuantity] = useState(1);
+  const [message, setMessage] = useState("");
 
   if (!product) {
     return (
@@ -67,9 +70,17 @@ function ProductDetails() {
   };
 
   const handleAddToCart = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     for (let i = 0; i < quantity; i++) {
       addToCart(product);
     }
+
+    setMessage(`${quantity} item${quantity !== 1 ? "s" : ""} added to cart`);
+    window.setTimeout(() => setMessage(""), 2500);
   };
 
   const handleBuyNow = () => {
@@ -81,7 +92,13 @@ function ProductDetails() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
+    <div className="bg-gray-50 min-h-screen py-12 relative">
+
+      {message && (
+        <div className="fixed top-24 right-5 z-[100] bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg font-semibold text-sm">
+          ✓ {message}
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
