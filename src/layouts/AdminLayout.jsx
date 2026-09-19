@@ -20,18 +20,18 @@ function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between sticky top-0 z-40">
+      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3"><div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center"><LayoutDashboard size={21} /></div><div><h1 className="font-bold text-gray-900">Admin Panel</h1><p className="text-xs text-gray-500">Management</p></div></div>
         <button onClick={() => setSidebarOpen((v) => !v)} className="w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-700">{sidebarOpen ? <X size={22} /> : <Menu size={22} />}</button>
       </div>
 
-      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 bg-black/40 z-40 lg:hidden" />}
+      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 bg-black/40 z-40 md:hidden" />}
 
-      <aside className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${collapsed ? "w-20" : "w-64"} lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+      <aside className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${collapsed ? "w-20" : "w-64"} md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         <div className={`h-20 px-4 flex items-center border-b border-gray-100 ${collapsed ? "justify-center" : "gap-3"}`}>
           <div className="w-11 h-11 shrink-0 bg-blue-600 text-white rounded-xl flex items-center justify-center"><LayoutDashboard size={23} /></div>
           {!collapsed && <div className="min-w-0"><h1 className="font-bold text-gray-900 text-lg">Admin Panel</h1><p className="text-xs text-gray-500">Store Management</p></div>}
-          <button onClick={() => setCollapsed((v) => !v)} className={`hidden lg:flex w-9 h-9 rounded-lg hover:bg-gray-100 text-gray-500 items-center justify-center ${collapsed ? "ml-0" : "ml-auto"}`} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}</button>
+          <button onClick={() => setCollapsed((v) => !v)} className={`hidden md:flex w-9 h-9 rounded-lg hover:bg-gray-100 text-gray-500 items-center justify-center ${collapsed ? "ml-0" : "ml-auto"}`} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}</button>
         </div>
 
         <div className={`py-5 border-b border-gray-100 ${collapsed ? "px-2" : "px-4"}`}>
@@ -52,7 +52,7 @@ function AdminLayout() {
         </div>
       </aside>
 
-      <main className={`min-h-screen transition-all duration-300 ${collapsed ? "lg:ml-20" : "lg:ml-64"}`}><Outlet /></main>
+      <main className={`min-h-screen transition-all duration-300 ${collapsed ? "md:ml-20" : "md:ml-64"}`}><Outlet /></main>
     </div>
   );
 }

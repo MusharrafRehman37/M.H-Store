@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import Navbar from "./components/layout/Navbar";
@@ -32,6 +32,9 @@ import AddProduct from "./pages/admin/AddProduct";
 import EditProduct from "./pages/admin/EditProduct";
 
 function App() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   return (
     <div className="min-h-screen flex flex-col">
 
@@ -39,8 +42,8 @@ function App() {
 
       <ScrollToTop />
 
-      {/* Main Navbar */}
-      <Navbar />
+      {/* Customer storefront UI should never appear behind the admin panel. */}
+      {!isAdminRoute && <Navbar />}
 
       <main className="flex-1">
         <Routes>
@@ -109,7 +112,7 @@ function App() {
         </Routes>
       </main>
 
-      <Footer />
+      {!isAdminRoute && <Footer />}
 
     </div>
   );

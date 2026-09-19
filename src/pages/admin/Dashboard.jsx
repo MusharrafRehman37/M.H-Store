@@ -65,6 +65,7 @@ function Dashboard() {
     };
   }, [filteredOrders]);
 
+  const totalActiveOrders = filteredOrders.filter((order) => statusOf(order) !== "delivered").length;
   const recentOrders = [...filteredOrders].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 5);
   const formatDate = (date) => date ? new Date(date).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" }) : "N/A";
   const statusClass = (status) => ({ delivered: "bg-green-100 text-green-700", shipped: "bg-blue-100 text-blue-700", cancelled: "bg-red-100 text-red-700", processing: "bg-yellow-100 text-yellow-700" }[statusOf({ status })] || "bg-gray-100 text-gray-700");
@@ -88,7 +89,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         <StatCard title="Total Products" value={products.length} icon={Package} color="blue" link="/admin/products" linkText="Manage Products" />
-        <StatCard title="Total Orders" value={filteredOrders.length} icon={ShoppingCart} color="orange" link="/admin/orders" linkText="Manage Orders" />
+        <StatCard title="Total Orders" value={totalActiveOrders} icon={ShoppingCart} color="orange" link="/admin/orders" linkText="Manage Orders" />
         <StatCard title="Total Users" value={users.length} icon={Users} color="purple" link="/admin/users" linkText="Manage Users" />
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-gray-500">Active Order Value</p><h2 className="text-2xl font-bold text-gray-900 mt-2">{money(stats.active)}</h2></div><div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center"><Banknote size={24} /></div></div><p className="text-sm text-gray-500 mt-5">Processing + shipped + other statuses</p></div>
       </div>

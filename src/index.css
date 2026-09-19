@@ -19,3 +19,46 @@ body {
 button {
   cursor: pointer;
 }
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .no-print-overlay,
+  .no-print-overlay * {
+    visibility: visible !important;
+  }
+
+  .no-print-overlay {
+    position: static !important;
+    display: block !important;
+    background: #fff !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .no-print-overlay > div {
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .print-order {
+    padding: 0 !important;
+  }
+}
