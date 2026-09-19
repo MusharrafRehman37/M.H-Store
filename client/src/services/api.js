@@ -1,5 +1,5 @@
 
-const API_URL = "https://mh-store-production.up.railway.app/";
+const API_URL = "https://mh-store.up.railway.app";
 
 const api = async (
   endpoint,
