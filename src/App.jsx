@@ -27,7 +27,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import AdminUsers from "./pages/admin/User";
-import AdminOrders from "./pages/admin/AdminOrders";
+import AdminOrders from "./pages/admin/Order";
 import AddProduct from "./pages/admin/AddProduct";
 import EditProduct from "./pages/admin/EditProduct";
 

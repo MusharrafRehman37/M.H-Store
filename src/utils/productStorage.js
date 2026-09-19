@@ -1,4 +1,5 @@
 import defaultProducts from "../data/product";
+import { getNextNumericProductId } from "./idGenerator";
 
 const STORAGE_KEY = "products";
 
@@ -14,10 +15,6 @@ export const getAdminProducts = () => {
 
 export const getAllProducts = () => {
   const adminProducts = getAdminProducts();
-
-  // Admin-created products are added to the built-in catalogue.
-  // If an admin product uses the same id as a default product, the admin
-  // version wins so edits are reflected everywhere.
   const byId = new Map();
 
   defaultProducts.forEach((product) => {
@@ -29,6 +26,10 @@ export const getAllProducts = () => {
   });
 
   return Array.from(byId.values());
+};
+
+export const getNextProductId = () => {
+  return getNextNumericProductId(getAllProducts());
 };
 
 export const saveAdminProducts = (products) => {

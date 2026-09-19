@@ -143,7 +143,7 @@ function AdminOrders() {
       case "Delivered":
         return "bg-green-100 text-green-700";
 
-      case "Shipped":
+      case "Shipped To Supplier":
         return "bg-blue-100 text-blue-700";
 
       case "Processing":
@@ -166,7 +166,7 @@ function AdminOrders() {
       case "Delivered":
         return <CheckCircle size={16} />;
 
-      case "Shipped":
+      case "Shipped To Supplier":
         return <Truck size={16} />;
 
       case "Processing":
@@ -591,7 +591,7 @@ function AdminOrders() {
                       </p>
 
                       <p className="text-xl font-bold text-gray-900 mt-2">
-                        $
+                        Rs.
                         {Number(
                           order.total || 0
                         ).toFixed(2)}
@@ -660,7 +660,7 @@ function AdminOrders() {
                             </div>
 
                             <p className="font-semibold text-gray-900">
-                              $
+                              Rs.
                               {(
                                 Number(
                                   item.price ||
