@@ -1,5 +1,5 @@
 
-const API_URL = "http://localhost:8000/products";
+const API_URL = "https://mh-store-production.up.railway.app/products";
 
 // ==========================================
 // GET ALL PRODUCTS

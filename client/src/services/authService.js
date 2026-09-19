@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000/auth";
+const API_URL = "https://mh-store-production.up.railway.app//auth";
 
 // REGISTER USER
 export const registerUser = async (userData) => {

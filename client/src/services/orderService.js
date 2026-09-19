@@ -5,7 +5,7 @@ import {
   updateLocalOrderStatus,
 } from "../utils/orderStorage";
 
-const API_URL = "http://localhost:8000/orders";
+const API_URL = "https://mh-store-production.up.railway.app/orders";
 
 const parseResponse = async (response) => {
   const text = await response.text();
