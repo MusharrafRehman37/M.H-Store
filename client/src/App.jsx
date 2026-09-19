@@ -1,10 +1,11 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
-import Navbar from "./components/layout/Navbar";
-import Footer from "./components/layout/Footer";
-import ScrollToTop from "./components/common/ScrollToTop";
-import ProtectedRoute from "./components/common/ProtectedRoute";
+// import Navbar from "./components/layout/Navbar";
+import Navbar from "../src/components/layout/Navbar";
+import Footer from "../src/components/layout/Footer";
+import ScrollToTop from "../src/components/common/ScrollToTop";
+import ProtectedRoute from "../src/components/common/ProtectedRoute";
 
 import Home from "./pages/public/Home";
 import Products from "./pages/public/Products";
