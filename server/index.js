@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-
 const { connectDB } = require("./config/db");
 
 const auth = require("./routes/auth");
@@ -17,6 +16,8 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow requests without an origin
+      // (Postman, server-to-server, etc.)
       if (!origin) {
         return callback(null, true);
       }
@@ -25,7 +26,7 @@ app.use(
         return callback(null, true);
       }
 
-      return callback(new Error("CORS not allowed"));
+      return callback(new Error("Not allowed by CORS"));
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -33,12 +34,10 @@ app.use(
   })
 );
 
-app.use(express.json());
+// Explicitly handle preflight requests
+app.options("*", cors());
 
-// Routes
-app.use("/auth", auth);
-app.use("/product", product);
-app.use("/order", order);
+app.use(express.json());
 
 connectDB();
 
@@ -49,6 +48,10 @@ app.get("/", (req, res) => {
 app.get("/health-check", (req, res) => {
   res.send("Server health is good");
 });
+
+app.use("/auth", auth);
+app.use("/product", product);
+app.use("/order", order);
 
 const PORT = process.env.PORT || 8000;
 
