@@ -1,48 +1,29 @@
-const API_URL = "https://m-h-store2.vercel.app/auth";
+const API_URL = (import.meta.env.VITE_API_URL || "https://m-h-store2.vercel.app").replace(/\/$/, "");
 
-// REGISTER USER
-export const registerUser = async (userData) => {
-  try {
-    const response = await fetch(`${API_URL}/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
-    });
+const request = async (endpoint, body) => {
+  const response = await fetch(`${API_URL}/auth${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
-    const data = await response.json();
+  let data = {};
+  try { data = await response.json(); } catch {}
 
-    if (!response.ok) {
-      throw new Error(data.message || "Registration failed");
-    }
-
-    return data;
-  } catch (error) {
-    throw new Error(error.message || "Unable to connect to the server");
-  }
+  if (!response.ok) throw new Error(data.message || "Request failed");
+  return data;
 };
 
+export const registerUser = (userData) => request("/register", userData);
+export const loginUser = (userData) => request("/login", userData);
 
-// LOGIN USER
-export const loginUser = async (userData) => {
-  try {
-    const response = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
-    });
+export const getCurrentUser = async (token) => {
+  const response = await fetch(`${API_URL}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Login failed");
-    }
-
-    return data;
-  } catch (error) {
-    throw new Error(error.message || "Unable to connect to the server");
-  }
+  let data = {};
+  try { data = await response.json(); } catch {}
+  if (!response.ok) throw new Error(data.message || "Session expired");
+  return data;
 };

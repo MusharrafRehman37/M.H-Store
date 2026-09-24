@@ -1,141 +1,71 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getCurrentUser } from "../services/authService";
 
 export const AuthContext = createContext(null);
 
-const getSavedUser = () => {
-  try {
-    const savedUser = localStorage.getItem("user");
-
-    if (!savedUser) {
-      return null;
-    }
-
-    return JSON.parse(savedUser);
-  } catch (error) {
-    console.error("Error reading saved user:", error);
-    localStorage.removeItem("user");
-    return null;
-  }
-};
-
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(getSavedUser);
-
-  const [token, setToken] = useState(() => {
-    return localStorage.getItem("token");
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("user") || "null"); }
+    catch { return null; }
   });
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [loading, setLoading] = useState(Boolean(localStorage.getItem("token")));
 
-  const [loading, setLoading] = useState(false);
-
-  // ==========================================
-  // LOGIN
-  // ==========================================
+  useEffect(() => {
+    const verifySession = async () => {
+      if (!token) { setLoading(false); return; }
+      try {
+        const data = await getCurrentUser(token);
+        const currentUser = data?.user;
+        if (!currentUser) throw new Error("Invalid session");
+        setUser(currentUser);
+        localStorage.setItem("user", JSON.stringify(currentUser));
+      } catch (error) {
+        console.error("Session verification failed:", error.message);
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      } finally {
+        setLoading(false);
+      }
+    };
+    verifySession();
+  }, [token]);
 
   const login = (data) => {
-    try {
-      /*
-        Backend normally returns something like:
-
-        {
-          token: "...",
-          user: {
-            id: "...",
-            fullName: "...",
-            email: "...",
-            role: "customer"
-          }
-        }
-
-        This function also safely supports
-        the case where only a user object is passed.
-      */
-
-      const loggedInUser =
-        data?.user || data?.data?.user || data;
-
-      const loggedInToken =
-        data?.token ||
-        data?.data?.token ||
-        null;
-
-      if (!loggedInUser) {
-        throw new Error("User information is missing.");
-      }
-
-      setUser(loggedInUser);
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify(loggedInUser)
-      );
-
-      if (loggedInToken) {
-        setToken(loggedInToken);
-
-        localStorage.setItem(
-          "token",
-          loggedInToken
-        );
-      }
-
-      return loggedInUser;
-    } catch (error) {
-      console.error("Login context error:", error);
-      throw error;
-    }
+    const loggedInUser = data?.user;
+    const loggedInToken = data?.token;
+    if (!loggedInUser || !loggedInToken) throw new Error("Invalid login response from server.");
+    setUser(loggedInUser);
+    setToken(loggedInToken);
+    localStorage.setItem("user", JSON.stringify(loggedInUser));
+    localStorage.setItem("token", loggedInToken);
+    return loggedInUser;
   };
-
-  // ==========================================
-  // LOGOUT
-  // ==========================================
 
   const logout = () => {
     setUser(null);
     setToken(null);
-
     localStorage.removeItem("user");
     localStorage.removeItem("token");
   };
 
-  // ==========================================
-  // UPDATE USER
-  // ==========================================
-
   const updateUser = (updatedUser) => {
-    if (!updatedUser) {
-      return;
-    }
-
+    if (!updatedUser) return;
     setUser(updatedUser);
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(updatedUser)
-    );
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        token,
-        setToken,
-        login,
-        logout,
-        updateUser,
-        loading,
-        isAuthenticated: Boolean(user && token),
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, setUser, token, setToken, login, logout, updateUser, loading,
+      isAuthenticated: Boolean(user && token),
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
-
+export function useAuth() { return useContext(AuthContext); }
 export default AuthProvider;
-

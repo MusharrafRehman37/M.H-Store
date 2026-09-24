@@ -11,7 +11,6 @@ import {
 
 import { useAuth } from "../../context/AuthContext";
 import { loginUser } from "../../services/authService";
-import { isDeletedUser } from "../../utils/userStorage";
 
 function Login() {
   const navigate = useNavigate();
@@ -77,12 +76,6 @@ function Login() {
     setLoading(true);
 
     try {
-      if (isDeletedUser(formData.email)) {
-        throw new Error(
-          "This account was removed by the administrator. Please create a new account before logging in again."
-        );
-      }
-
       const data = await loginUser(formData);
 
       login(data);
