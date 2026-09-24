@@ -1,5 +1,5 @@
 
-const API_URL = "https://mh-store.up.railway.app/products";
+const API_URL = "https://m-h-store2.vercel.app/products";
 
 // ==========================================
 // GET ALL PRODUCTS

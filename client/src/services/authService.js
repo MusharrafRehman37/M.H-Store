@@ -1,4 +1,4 @@
-const API_URL = "https://mh-store.up.railway.app/auth";
+const API_URL = "https://m-h-store2.vercel.app/auth";
 
 // REGISTER USER
 export const registerUser = async (userData) => {

@@ -10,8 +10,8 @@ const orderRoutes = require("./routes/orders");
 const authMiddleware = require("./middleware/auth");
 
 const app = express();
-const PORT = process.env.PORT || 8000;
-const allowedOrigins = (process.env.CLIENT_ORIGINS || "http://localhost:5173,http://localhost:3000").split(",").map(v => v.trim()).filter(Boolean);
+const PORT = process.env.PORT || m-h-store2.vercel.app;
+const allowedOrigins = (process.env.CLIENT_ORIGINS || "http://localhost:5173,https://m-h-store2.vercel.app").split(",").map(v => v.trim()).filter(Boolean);
 
 app.use(cors({ origin: (origin, callback) => { if (!origin || allowedOrigins.includes(origin)) return callback(null, true); callback(new Error("CORS origin not allowed")); }, credentials: true }));
 app.use(express.json({ limit: "12mb" }));
