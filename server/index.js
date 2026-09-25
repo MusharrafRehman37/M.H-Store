@@ -1,5 +1,5 @@
 const appHandler = require("./api/index");
-const PORT = process.env.PORT || 8000;
+// const PORT = process.env.PORT || 8000;
 
 if (require.main === module) {
   const express = require("express");
