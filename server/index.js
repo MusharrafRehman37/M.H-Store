@@ -10,7 +10,7 @@ const order = require("./routes/order");
 const app = express();
 
 const allowedOrigins = [
-  "https://https://m-h-store2.vercel.app",
+  "https://m-h-store2.vercel.app",
   "https://mh-store1.vercel.app",
 ];
 
