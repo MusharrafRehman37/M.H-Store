@@ -1,5 +1,5 @@
 
-const API_URL = "https://m-h-store2.vercel.app/products";
+const API_URL = `${import.meta.env.VITE_API_URL}/products`;
 
 // ==========================================
 // GET ALL PRODUCTS

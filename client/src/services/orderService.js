@@ -5,7 +5,7 @@ import {
   updateLocalOrderStatus,
 } from "../utils/orderStorage";
 
-const API_URL = "https://m-h-store2.vercel.app/orders";
+const API_URL = `${import.meta.env.VITE_API_URL}/orders`;
 
 const parseResponse = async (response) => {
   const text = await response.text();
