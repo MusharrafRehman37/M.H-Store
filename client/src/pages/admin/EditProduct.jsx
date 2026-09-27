@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Package, ArrowLeft, Save, Image as ImageIcon, Upload, X } from "lucide-react";
-import { getAdminProducts, saveAdminProducts } from "../../utils/productStorage";
+import { getProductById, updateProduct } from "../../services/productService";
+import { useAuth } from "../../context/AuthContext";
 
 function EditProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [formData, setFormData] = useState({ name: "", category: "", price: "", stock: "", image: "", description: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -13,15 +15,15 @@ function EditProduct() {
   const [imageSource, setImageSource] = useState("url");
 
   useEffect(() => {
-    const product = getAdminProducts().find((item) => String(item.id || item._id) === String(id));
-    if (!product) {
-      setError("Product not found.");
-      setLoading(false);
-      return;
-    }
-    setFormData({ name: product.name || "", category: product.category || "", price: product.price ?? "", stock: product.stock ?? "", image: product.image || "", description: product.description || "" });
-    setImageSource(String(product.image || "").startsWith("data:") ? "upload" : "url");
-    setLoading(false);
+    const loadProduct = async () => {
+      try {
+        const product = await getProductById(id);
+        if (!product) throw new Error("Product not found");
+        setFormData({ name: product.name || "", category: product.category || "", price: product.price ?? "", stock: product.stock ?? "", image: product.image || "", description: product.description || "" });
+        setImageSource(String(product.image || "").startsWith("data:") ? "upload" : "url");
+      } catch (err) { setError(err.message || "Product not found."); } finally { setLoading(false); }
+    };
+    loadProduct();
   }, [id]);
 
   const handleChange = (e) => {
@@ -33,7 +35,7 @@ function EditProduct() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) return setError("Please select a valid image file.");
-    if (file.size > 2 * 1024 * 1024) return setError("Image size must be 2 MB or less for local storage.");
+    if (file.size > 2 * 1024 * 1024) return setError("Image size must be 2 MB or less.");
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -45,33 +47,15 @@ function EditProduct() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
-    const name = formData.name.trim();
-    const category = formData.category.trim();
-    const price = Number(formData.price);
-    const stock = Number(formData.stock);
-    const image = formData.image.trim();
-
+  const handleSubmit = async (e) => {
+    e.preventDefault(); setError("");
+    const name = formData.name.trim(), category = formData.category.trim(), price = Number(formData.price), stock = Number(formData.stock), image = formData.image.trim();
     if (!name || !category || formData.price === "" || formData.stock === "" || !image) return setError("Please fill in all required fields and add a product image.");
     if (price < 0 || stock < 0) return setError("Price and stock cannot be negative.");
-
+    if (!token) return navigate("/login");
     setSaving(true);
-    try {
-      const products = getAdminProducts();
-      const updated = products.map((product) => {
-        if (String(product.id || product._id) !== String(id)) return product;
-        return { ...product, name, category, price, stock, image, description: formData.description.trim(), updatedAt: new Date().toISOString() };
-      });
-      saveAdminProducts(updated);
-      navigate("/admin/products");
-    } catch (err) {
-      console.error("Update Product Error:", err);
-      setError("Something went wrong while updating the product.");
-    } finally {
-      setSaving(false);
-    }
+    try { await updateProduct(id, { name, category, price, stock, image, description: formData.description.trim() }, token); navigate("/admin/products"); }
+    catch (err) { setError(err.message || "Failed to update product."); } finally { setSaving(false); }
   };
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-gray-500">Loading product...</div>;

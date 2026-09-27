@@ -19,12 +19,11 @@ function Wishlist() {
   const { addToCart } = useCart();
 
   const handleAddToCart = (product) => {
-    addToCart(product);
-
-    const productId = product.id || product._id;
-
-    // Remove from wishlist after adding to cart
-    removeFromWishlist(productId);
+    addToCart(product).then((result) => {
+      if (!result?.success) return;
+      const productId = product.productId || product.id || product._id;
+      removeFromWishlist(productId);
+    });
   };
 
   if (wishlistItems.length === 0) {
@@ -94,7 +93,7 @@ function Wishlist() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
           {wishlistItems.map((product) => {
-            const productId = product.id || product._id;
+            const productId = product.productId || product.id || product._id;
             const price = Number(product.price || 0);
 
             return (

@@ -10,13 +10,16 @@ const orderRoutes = require("../routes/orders");
 const authMiddleware = require("../middleware/auth");
 
 const app = express();
-const allowedOrigins = (process.env.CLIENT_ORIGINS || "").split(",").map(v => v.trim()).filter(Boolean);
+const allowedOrigins = (process.env.CLIENT_ORIGINS || "")
+  .split(",").map(v => v.trim()).filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error("CORS origin not allowed"));
+    return callback(new Error(`CORS origin not allowed: ${origin}`));
   },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: false,
 }));
 app.use(express.json({ limit: "12mb" }));
@@ -24,6 +27,10 @@ app.use(express.urlencoded({ extended: true, limit: "12mb" }));
 
 app.get("/", (req, res) => res.json({ message: "M.H Store API is running", isError: false }));
 app.get("/health-check", (req, res) => res.json({ message: "Server health is good", isError: false }));
+app.get("/db-check", async (req, res) => {
+  try { await connectDB(); res.json({ message: "MongoDB connection is healthy", state: "connected", isError: false }); }
+  catch (error) { console.error("DB check error:", error); res.status(500).json({ message: error.message, isError: true }); }
+});
 
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
@@ -37,15 +44,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message || "Internal Server Error", isError: true });
 });
 
-// Vercel serverless function: connect lazily and reuse the connection.
 const handler = async (req, res) => {
-  try {
-    await connectDB();
-    return app(req, res);
-  } catch (error) {
+  // Health endpoints remain available even when MongoDB is unavailable.
+  if (req.path === "/health-check") return app(req, res);
+  try { await connectDB(); return app(req, res); }
+  catch (error) {
     console.error("Database connection error:", error);
-    return res.status(500).json({ message: "Database connection failed", isError: true });
+    return res.status(500).json({ message: `Database connection failed: ${error.message}`, isError: true });
   }
 };
 
 module.exports = handler;
+module.exports.app = app;

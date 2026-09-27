@@ -1,223 +1,56 @@
-
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-
+import { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "./AuthContext";
+import { addWishlistItem, clearWishlistApi, getWishlist, removeWishlistItem } from "../services/wishlistService";
 
 const WishlistContext = createContext();
+const getProductId = (product) => String(product?.productId || product?.id || product?._id || "");
 
-const getProductId = (product) =>
-  String(product?.id || product?._id || "");
+export const WishlistProvider = ({ children }) => {
+  const { user, token } = useAuth();
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-const getWishlistStorageKey = (
-  user
-) => {
-  if (!user) return null;
-
-  const userId =
-    user.id ||
-    user._id ||
-    user.uid ||
-    user.email;
-
-  return userId
-    ? `wishlist_${String(userId)}`
-    : null;
-};
-
-const readWishlist = (user) => {
-  const key =
-    getWishlistStorageKey(user);
-
-  if (!key) {
-    return [];
-  }
-
-  try {
-    const savedWishlist =
-      localStorage.getItem(key);
-
-    return savedWishlist
-      ? JSON.parse(savedWishlist)
-      : [];
-  } catch (error) {
-    console.error(
-      "Error reading wishlist:",
-      error
-    );
-
-    return [];
-  }
-};
-
-export const WishlistProvider = ({
-  children,
-}) => {
-  const { user } = useAuth();
-
-  const [
-    wishlistItems,
-    setWishlistItems,
-  ] = useState(() =>
-    readWishlist(user)
-  );
-
-  // ==========================================
-  // LOAD USER WISHLIST
-  // ==========================================
-
-  useEffect(() => {
-    setWishlistItems(
-      readWishlist(user)
-    );
-  }, [
-    user?.id,
-    user?._id,
-    user?.uid,
-    user?.email,
-  ]);
-
-  // ==========================================
-  // SAVE USER WISHLIST
-  // ==========================================
-
-  useEffect(() => {
-    const key =
-      getWishlistStorageKey(user);
-
-    if (!key) {
-      return;
-    }
-
-    localStorage.setItem(
-      key,
-      JSON.stringify(wishlistItems)
-    );
-  }, [wishlistItems, user]);
-
-  // ==========================================
-  // ADD / REMOVE WISHLIST
-  // ==========================================
-
-  const toggleWishlist = (
-    product
-  ) => {
-    if (!user) {
-      return {
-        success: false,
-        requiresLogin: true,
-      };
-    }
-
-    const productId =
-      getProductId(product);
-
-    if (!productId) {
-      return {
-        success: false,
-        message: "Invalid product.",
-      };
-    }
-
-    let added = false;
-
-    setWishlistItems(
-      (currentItems) => {
-        const exists =
-          currentItems.some(
-            (item) =>
-              getProductId(item) ===
-              productId
-          );
-
-        if (exists) {
-          return currentItems.filter(
-            (item) =>
-              getProductId(item) !==
-              productId
-          );
-        }
-
-        added = true;
-
-        return [
-          ...currentItems,
-          product,
-        ];
-      }
-    );
-
-    return {
-      success: true,
-      added,
-    };
+  const loadWishlist = async () => {
+    if (!user || !token) { setWishlistItems([]); return; }
+    try {
+      setLoading(true);
+      setWishlistItems(await getWishlist());
+    } catch (error) {
+      console.error("Load wishlist error:", error);
+      setWishlistItems([]);
+    } finally { setLoading(false); }
   };
 
-  // ==========================================
-  // REMOVE
-  // ==========================================
+  useEffect(() => { loadWishlist(); }, [user?.uid, token]);
 
-  const removeFromWishlist = (
-    productId
-  ) => {
-    setWishlistItems(
-      (currentItems) =>
-        currentItems.filter(
-          (item) =>
-            getProductId(item) !==
-            String(productId)
-        )
-    );
+  const toggleWishlist = async (product) => {
+    if (!user || !token) return { success: false, requiresLogin: true };
+    const productId = getProductId(product);
+    if (!productId) return { success: false, message: "Invalid product." };
+    try {
+      const exists = wishlistItems.some((item) => getProductId(item) === productId);
+      const data = exists ? await removeWishlistItem(productId) : await addWishlistItem(productId);
+      setWishlistItems(data.wishlist || []);
+      return { success: true, added: !exists, wishlist: data.wishlist || [] };
+    } catch (error) { return { success: false, message: error.message }; }
   };
 
-  // ==========================================
-  // CHECK WISHLIST
-  // ==========================================
-
-  const isInWishlist = (
-    productId
-  ) => {
-    if (!user) {
-      return false;
-    }
-
-    return wishlistItems.some(
-      (item) =>
-        getProductId(item) ===
-        String(productId)
-    );
+  const removeFromWishlist = async (productId) => {
+    try { const data = await removeWishlistItem(productId); setWishlistItems(data.wishlist || []); return data; }
+    catch (error) { return { success: false, message: error.message }; }
   };
 
-  // ==========================================
-  // CLEAR WISHLIST
-  // ==========================================
-
-  const clearWishlist = () => {
-    setWishlistItems([]);
+  const clearWishlist = async () => {
+    try { const data = await clearWishlistApi(); setWishlistItems(data.wishlist || []); return data; }
+    catch (error) { return { success: false, message: error.message }; }
   };
 
-  return (
-    <WishlistContext.Provider
-      value={{
-        wishlistItems,
-        toggleWishlist,
-        removeFromWishlist,
-        isInWishlist,
-        clearWishlist,
-      }}
-    >
-      {children}
-    </WishlistContext.Provider>
-  );
+  const isInWishlist = (productId) => wishlistItems.some((item) => getProductId(item) === String(productId));
+
+  return <WishlistContext.Provider value={{ wishlistItems, toggleWishlist, removeFromWishlist, isInWishlist, clearWishlist, loading, refreshWishlist: loadWishlist }}>
+    {children}
+  </WishlistContext.Provider>;
 };
 
-export const useWishlist = () => {
-  return useContext(WishlistContext);
-};
-
+export const useWishlist = () => useContext(WishlistContext);
 export default WishlistContext;
-

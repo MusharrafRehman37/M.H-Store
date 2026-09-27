@@ -80,7 +80,7 @@ function Cart() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => {
-              const productId = item.id || item._id;
+              const productId = item.productId || item.id || item._id;
               const price = Number(item.price || 0);
               const quantity = Number(item.quantity || 1);
               const itemTotal = price * quantity;

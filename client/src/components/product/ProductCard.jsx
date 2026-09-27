@@ -52,13 +52,13 @@ function ProductCard({
   // ADD TO CART
   // ==========================================
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!user) {
       requireLogin();
       return;
     }
 
-    const result = addToCart(product);
+    const result = await addToCart(product);
 
     if (result?.success) {
       const productName = product?.name || "Product";
@@ -77,13 +77,14 @@ function ProductCard({
   // WISHLIST
   // ==========================================
 
-  const handleWishlist = () => {
+  const handleWishlist = async () => {
     if (!user) {
       requireLogin();
       return;
     }
 
-    toggleWishlist(product);
+    const result = await toggleWishlist(product);
+    if (result?.message && !result?.success) toast.error(result.message);
   };
 
   return (

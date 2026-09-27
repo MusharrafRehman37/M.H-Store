@@ -63,6 +63,7 @@ router.post("/login", async (req, res) => {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ message: "Invalid email or password", isError: true });
 
+    if (!process.env.JWT_SECRET) return res.status(500).json({ message: "JWT_SECRET is not configured on the server", isError: true });
     const token = jwt.sign({ uid: user.uid, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
     return res.json({ message: "Login successful", isError: false, token, user: publicUser(user) });
   } catch (error) {

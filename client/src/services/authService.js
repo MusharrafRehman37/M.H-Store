@@ -27,3 +27,5 @@ export const getCurrentUser = async (token) => {
   if (!response.ok) throw new Error(data.message || "Session expired");
   return data;
 };
+
+export const forgotPassword = (email) => request("/forgot-password", { email });

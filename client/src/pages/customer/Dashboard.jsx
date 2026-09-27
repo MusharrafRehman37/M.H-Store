@@ -1,5 +1,6 @@
 
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   Package,
   Heart,
@@ -15,6 +16,7 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { getMyOrders } from "../../services/orderService";
 
 function Dashboard() {
   const { user } = useAuth();
@@ -25,119 +27,22 @@ function Dashboard() {
   const { wishlistItems } =
     useWishlist();
 
-  // ==========================================
-  // LOAD ORDERS
-  // ==========================================
+  const [userOrders, setUserOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
 
-  let savedOrders = [];
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!user) { setUserOrders([]); setOrdersLoading(false); return; }
+      try { setOrdersLoading(true); const orders = await getMyOrders(); if (active) setUserOrders(orders); }
+      catch (error) { console.error("Dashboard orders:", error); if (active) setUserOrders([]); }
+      finally { if (active) setOrdersLoading(false); }
+    })();
+    return () => { active = false; };
+  }, [user?.uid]);
 
-  try {
-    savedOrders = JSON.parse(
-      localStorage.getItem("orders") || "[]"
-    );
-
-    if (!Array.isArray(savedOrders)) {
-      savedOrders = [];
-    }
-  } catch (error) {
-    console.error(
-      "Error loading orders:",
-      error
-    );
-
-    savedOrders = [];
-  }
-
-  // ==========================================
-  // CURRENT USER ID
-  // ==========================================
-
-  const currentUserId = String(
-    user?.id ||
-      user?._id ||
-      user?.uid ||
-      user?.email ||
-      ""
-  );
-
-  // ==========================================
-  // USER ORDERS
-  // ==========================================
-
-  const userOrders = savedOrders.filter(
-    (order) => {
-      const orderUserId = String(
-        order.userId ||
-          order.user?._id ||
-          order.user?.id ||
-          order.customerId ||
-          order.customer?.id ||
-          order.customer?.email ||
-          ""
-      );
-
-      const orderEmail = String(
-        order.email ||
-          order.customer?.email ||
-          ""
-      ).toLowerCase();
-
-      const userEmail =
-        String(
-          user?.email || ""
-        ).toLowerCase();
-
-      return (
-        orderUserId === currentUserId ||
-        (userEmail &&
-          orderEmail === userEmail)
-      );
-    }
-  );
-
-  // ==========================================
-  // RECENT ORDERS
-  // ==========================================
-
-  const recentOrders = [
-    ...userOrders,
-  ]
-    .sort(
-      (a, b) =>
-        new Date(
-          b.createdAt ||
-            b.date ||
-            0
-        ) -
-        new Date(
-          a.createdAt ||
-            a.date ||
-            0
-        )
-    )
-    .slice(0, 3);
-
-  // ==========================================
-  // TOTAL SPENDING
-  // ==========================================
-
-  const totalSpent =
-    userOrders.reduce(
-      (total, order) => {
-        if (
-          order.status?.toLowerCase() ===
-          "cancelled"
-        ) {
-          return total;
-        }
-
-        return (
-          total +
-          Number(order.total || 0)
-        );
-      },
-      0
-    );
+  const recentOrders = [...userOrders].sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 3);
+  const totalSpent = userOrders.reduce((total, order) => order.status?.toLowerCase() === "cancelled" ? total : total + Number(order.total || 0), 0);
 
   // ==========================================
   // FORMAT DATE

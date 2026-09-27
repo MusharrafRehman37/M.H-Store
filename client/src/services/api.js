@@ -2,20 +2,20 @@ const API_URL = (import.meta.env.VITE_API_URL || "https://m-h-store2.vercel.app"
 
 const api = async (endpoint, options = {}) => {
   const token = localStorage.getItem("token");
-
   const headers = {
     ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
     ...(options.headers || {}),
   };
-
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
-  let data = {};
-  try { data = await response.json(); } catch {}
+  let response;
+  try { response = await fetch(`${API_URL}${endpoint}`, { ...options, headers }); }
+  catch (error) { throw new Error(`Cannot connect to server: ${error.message}`); }
 
-  if (!response.ok) throw new Error(data.message || data.error || "Something went wrong");
+  const text = await response.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { message: text }; }
+  if (!response.ok) throw new Error(data.message || data.error || `Server returned ${response.status}`);
   return data;
 };
-
 export default api;

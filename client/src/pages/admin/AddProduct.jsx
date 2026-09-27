@@ -8,14 +8,12 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import {
-  getAdminProducts,
-  getNextProductId,
-  saveAdminProducts,
-} from "../../utils/productStorage";
+import { createProduct } from "../../services/productService";
+import { useAuth } from "../../context/AuthContext";
 
 function AddProduct() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -43,7 +41,7 @@ function AddProduct() {
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      setError("Image size must be 2 MB or less for local storage.");
+      setError("Image size must be 2 MB or less.");
       return;
     }
 
@@ -57,47 +55,23 @@ function AddProduct() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     const name = formData.name.trim();
     const category = formData.category.trim();
     const price = Number(formData.price);
     const stock = Number(formData.stock);
     const image = formData.image.trim();
     const description = formData.description.trim();
-
-    if (!name || !category || formData.price === "" || formData.stock === "" || !image) {
-      setError("Please fill in all required fields and add a product image.");
-      return;
-    }
-    if (price < 0 || stock < 0) {
-      setError("Price and stock cannot be negative.");
-      return;
-    }
-
+    if (!name || !category || formData.price === "" || formData.stock === "" || !image) return setError("Please fill in all required fields and add a product image.");
+    if (price < 0 || stock < 0) return setError("Price and stock cannot be negative.");
+    if (!token) return navigate("/login");
     setLoading(true);
     try {
-      const savedProducts = getAdminProducts();
-      const newProduct = {
-        id: getNextProductId(),
-        name,
-        category,
-        price,
-        stock,
-        image,
-        description,
-        createdAt: new Date().toISOString(),
-      };
-      saveAdminProducts([...savedProducts, newProduct]);
+      await createProduct({ name, category, price, stock, image, description }, token);
       navigate("/admin/products");
-    } catch (err) {
-      console.error("Add Product Error:", err);
-      setError("Something went wrong while adding the product.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(err.message || "Failed to create product."); } finally { setLoading(false); }
   };
 
   return (
