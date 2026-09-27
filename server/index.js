@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-
 const { connectDB } = require("./config/db");
 
 const auth = require("./routes/auth");
@@ -31,7 +30,8 @@ app.use(
 
 app.use(express.json());
 
-connectDB();
+// Initialize DB (non-blocking for serverless execution)
+connectDB().catch((err) => console.error("DB Connection Error:", err));
 
 app.get("/", (req, res) => {
   res.send(new Date().toLocaleString());
@@ -48,10 +48,10 @@ app.use("/order", order);
 // Local development only
 if (require.main === module) {
   const PORT = process.env.PORT || 8000;
-
   app.listen(PORT, () => {
     console.log(`Server is running on Port ${PORT}`);
   });
 }
 
+// Crucial: Export the express app directly for serverless environments
 module.exports = app;
